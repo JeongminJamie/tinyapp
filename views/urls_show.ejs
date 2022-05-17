@@ -9,7 +9,7 @@
 </head>
 
 <body>
-  <%-include ('partials/_header') %>
+  <%- include('partials/_header') %>
     <div class="card text-center">
       <div class="card-header"></div>
       <div class="card-body">
@@ -19,7 +19,19 @@
             <%= shortURL %>
           </a></p>
       </div>
-      <div class="card-footer text-muted"></div>
+
+      <div class="card-footer text-muted w-100">
+        <div>
+          <h4>Edit</h4>
+        </div>
+        <form class="form-inline row justify-content-center" method="POST" action="/urls/<%= shortURL %>">
+          <label for="newURL">New URL:</label>
+          <input class="form-control" type="text" name="longURL" placeholder="http://"
+            style="width: 300px; margin: 1em">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+
     </div>
     <!-- Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
