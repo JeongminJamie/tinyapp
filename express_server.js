@@ -3,21 +3,45 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 
+const alphanumeric = '123456ABCDEFGabcdefg';
+function generateRandomString(times) {
+  let result = '';
+  const alphanumericLength = alphanumeric.length;
+  for (let i = 0; i < times; i++) {
+    result += alphanumeric.charAt(Math.floor(Math.random() * alphanumericLength));
+  }
+  return result;
+};
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
-
-app.post("/urls", (req, res) => {
-  console.log(req.body);
-  res.send("Ok");
-});
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
-};
+}
 
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
+});
+
+app.post("/urls", (req, res) => {
+  const { longURL } = req.body;
+  const shortUrl = generateRandomString(6);
+  urlDatabase[shortUrl] = longURL;
+  res.status(200);
+  res.redirect(`/urls/${shortUrl}`);
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  res.render("urls_show", templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const shortUrl = req.params.shortURL;
+  const longUrl = urlDatabase[shortUrl];
+  res.redirect(longUrl);
 });
 
 app.get("/", (req, res) => {
@@ -37,24 +61,8 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
-  res.render("urls_show", templateVars);
-});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-const alphanumeric = '123456ABCDEFGabcdefg';
-function generateRandomString(times) {
-  let result = '';
-  const alphanumericLength = alphanumeric.length;
-  for (let i = 0; i < times; i++) {
-    result += alphanumeric.charAt(Math.floor(Math.random() * alphanumericLength));
-  }
-  console.log(result);
-  return result;
-};
-
-generateRandomString(6);
