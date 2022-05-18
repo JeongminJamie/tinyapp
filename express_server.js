@@ -69,7 +69,7 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]], email: "jamie" };
+  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
 });
 
@@ -107,9 +107,25 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+const emailLookup = function (email) {
+  for (const key in users) {
+    if (users[key].email === email) {
+      return true;
+    }
+  }
+  return false;
+};
+
 app.post("/register", (req, res) => {
   const randomId = generateRandomString(6);
   const { email, password } = req.body;
+  if (email === "" || password === "") {
+    return res.status(400).send({ message: "email or password is invalid" });
+  };
+  let lookupResult = emailLookup(email);
+  if (lookupResult) {
+    return res.status(400).send({ message: "email in use" });
+  }
   users[randomId] = { id: randomId, email: email, password: password };
   res.cookie("user_id", randomId);
   res.redirect("/urls");
