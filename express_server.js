@@ -60,6 +60,10 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/register", (req, res) => {
+  res.render("urls_register");
+});
+
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
   const shortUrl = generateRandomString(6);
@@ -89,7 +93,6 @@ app.post("/logout", (req, res) => {
   res.clearCookie("username");
   res.redirect("/urls");
 });
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
