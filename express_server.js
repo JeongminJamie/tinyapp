@@ -9,8 +9,14 @@ app.use(cookieParser());
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "aJ48lW"
+  },
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "aJ48lW"
+  }
 }
 
 const users = {
@@ -53,15 +59,22 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  const shortUrl = req.params.shortURL;
+  if (!urlDatabase.hasOwnProperty(shortUrl)) {
+    return res.send("wrong shortURL");
+  }
   const user_id = req.cookies["user_id"];
   const user = users[user_id] || {};
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: user };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: user };
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
   const shortUrl = req.params.shortURL;
-  const longUrl = urlDatabase[shortUrl];
+  if (!urlDatabase.hasOwnProperty(shortUrl)) {
+    return res.send("wrong shortURL");
+  }
+  const longUrl = urlDatabase[shortUrl].longURL;
   res.redirect(longUrl);
 });
 
@@ -99,9 +112,10 @@ app.get("/login", (req, res) => {
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
   const shortUrl = generateRandomString(6);
-  urlDatabase[shortUrl] = longURL;
+  urlDatabase[shortUrl] = { longURL: longURL, userID: req.cookies["user_id"] }
+  console.log(longURL);
   res.status(200);
-  res.redirect(`/urls/${shortUrl}`);
+  res.redirect(`/urls/${shortUrl.longURL}`);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
@@ -112,7 +126,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const shortURL = req.params.id;
   const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL].longURL = longURL;
   res.redirect("/urls");
 });
 
@@ -155,7 +169,7 @@ app.post("/login", (req, res) => {
     res.cookie("user_id", currentUser.id)
     return res.redirect("/urls");
   }
-  return res.send("your email or password is wrong!")
+  return res.send("Your email or password is wrong!")
 });
 
 app.listen(PORT, () => {
