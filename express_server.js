@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcryptjs');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -178,35 +179,45 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  const randomId = generateRandomString(6);
+
   const { email, password } = req.body;
   if (email === "" || password === "") {
     return res.status(400).send({ message: "email or password is invalid" });
   };
-  let emailLookupResult = emailLookup(email);
-  if (!emailLookupResult) {
-    users[randomId] = { id: randomId, email: email, password: password };
-    res.cookie("user_id", randomId);
-    res.redirect("/urls");
-    return;
+
+  let emailAlreadyExist = emailLookup(email);
+  if (emailAlreadyExist) {
+    return res.status(400).send({ message: "email in use" });
   }
-  res.status(400).send({ message: "email in use" });
+
+  const randomId = generateRandomString(6);
+  const hashedPassword = bcrypt.hashSync(password, 10);
+
+  users[randomId] = {
+    id: randomId,
+    email: email,
+    password: hashedPassword
+  };
+  res.cookie("user_id", randomId);
+  res.redirect("/urls");
 });
 
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
+
   let currentUser = emailLookup(email);
   if (!currentUser) {
     return res.status(403).send("e-mail cannot be found");
   }
-  if (currentUser.password !== password) {
-    return res.status(403).send("Your password is wrong:(")
+
+  // const passwordMatch = currentUser.password === password;
+  const passwordMatch = bcrypt.compareSync(password, currentUser.password);
+  if (!passwordMatch) {
+    return res.status(403).send("Invaild credential")
   }
-  if (currentUser.password === password) {
-    res.cookie("user_id", currentUser.id)
-    return res.redirect("/urls");
-  }
-  return res.send("Your email or password is wrong!")
+
+  res.cookie("user_id", currentUser.id)
+  res.redirect("/urls");
 });
 
 app.listen(PORT, () => {
