@@ -4,8 +4,9 @@ TinyApp is an web application with Node and Express that lets users to handle si
 
 ## Final Product
 
-!["screenshot description"](./)
-!["screenshot description"](./)
+!["screenshot description"](./docs/creat url page)
+!["screenshot description"](./docs//url page)
+!["screenshot description"](./docs/urls-register page)
 
 ## Dependencies
 
