@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/_mocha"
+    "test": "./node_modules/.bin/_mocha",
+    "start": "nodemon express_server.js"
   },
   "repository": {
     "type": "git",
