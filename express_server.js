@@ -1,41 +1,45 @@
 const express = require("express");
-const { generateRandomString, emailLookup, urlsForUser } = require("./helpers");
 const app = express();
 const PORT = 8080;
-const bodyParser = require("body-parser");
-const cookieSession = require("cookie-session");
-const bcrypt = require('bcryptjs');
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieSession({
-  name: 'session',
-  keys: ['I do not like potatoes', 'I hate salmon sashimi']
-}));
 app.set("view engine", "ejs");
 
+const { generateRandomString, emailLookup, urlsForUser } = require("./helpers");
+const bodyParser = require("body-parser");
+const cookieSession = require("cookie-session");
+const bcrypt = require("bcryptjs");
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(
+  cookieSession({
+    name: "session",
+    keys: ["I do not like potatoes", "I hate salmon sashimi"],
+  })
+);
+
 const urlDatabase = {
-  "b2xVn2": {
+  b2xVn2: {
     longURL: "http://www.lighthouselabs.ca",
-    userID: "aJ48lW"
+    userID: "aJ48lW",
   },
   "9sm5xK": {
     longURL: "http://www.google.com",
-    userID: "aJ48lW"
-  }
-}
+    userID: "aJ48lW",
+  },
+};
 
 const users = {
-  "userRandomID": {
+  userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "purple-monkey-dinosaur",
   },
-  "user2RandomID": {
+  user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-}
+    password: "dishwasher-funk",
+  },
+};
 
 app.get("/urls/new", (req, res) => {
   const user_id = req.session.user_id;
@@ -43,7 +47,7 @@ app.get("/urls/new", (req, res) => {
   const loginId = { user: user };
 
   if (!req.session.user_id) {
-    return res.redirect("/login")
+    return res.redirect("/login");
   }
 
   res.render("urls_new", loginId);
@@ -67,7 +71,11 @@ app.get("/urls/:shortURL", (req, res) => {
   }
 
   const user = users[user_id] || {};
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: user };
+  const templateVars = {
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL,
+    user: user,
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -83,9 +91,8 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-
   if (!req.session.user_id) {
-    return res.redirect("/login")
+    return res.redirect("/login");
   }
 
   res.redirect("/urls");
@@ -125,16 +132,16 @@ app.get("/login", (req, res) => {
     return res.redirect("/urls");
   }
 
-  res.render("urls_login", { user: null })
+  res.render("urls_login", { user: null });
 });
 
 app.post("/urls", (req, res) => {
   const { longURL } = req.body;
   const shortUrl = generateRandomString(6);
-  urlDatabase[shortUrl] = { longURL: longURL, userID: req.session.user_id }
+  urlDatabase[shortUrl] = { longURL: longURL, userID: req.session.user_id };
 
   if (!req.session.user_id) {
-    return res.render("urls_loginerror")
+    return res.render("urls_loginerror");
   }
 
   res.status(200);
@@ -151,7 +158,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   }
 
   if (!req.session.user_id) {
-    return res.render("urls_loginerror")
+    return res.render("urls_loginerror");
   }
 
   delete urlDatabase[req.params.shortURL];
@@ -165,7 +172,7 @@ app.post("/urls/:id", (req, res) => {
   const newURL = { longURL: longURL, userID: req.session.user_id };
   //if user is not logged in
   if (!req.session.user_id) {
-    return res.render("urls_loginerror")
+    return res.render("urls_loginerror");
   }
   //if shortURL exists in urlDatabase
   if (urlDatabase[shortURL]) {
@@ -187,7 +194,7 @@ app.post("/register", (req, res) => {
 
   if (email === "" || password === "") {
     return res.render("urls_eitherinvalid");
-  };
+  }
 
   let emailAlreadyExist = emailLookup(email, users);
 
@@ -201,7 +208,7 @@ app.post("/register", (req, res) => {
   users[randomId] = {
     id: randomId,
     email: email,
-    password: hashedPassword
+    password: hashedPassword,
   };
 
   req.session.user_id = randomId;
@@ -220,7 +227,7 @@ app.post("/login", (req, res) => {
   const passwordMatch = bcrypt.compareSync(password, currentUser.password);
 
   if (!passwordMatch) {
-    return res.render("urls_invalid")
+    return res.render("urls_invalid");
   }
 
   req.session.user_id = currentUser.id;
@@ -230,4 +237,3 @@ app.post("/login", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
